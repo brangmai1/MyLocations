@@ -19,11 +19,19 @@ class CurrentLocationViewController: UIViewController, CLLocationManagerDelegate
     
     let locationManager = CLLocationManager()
     var location: CLLocation?
+    var updatingLocation = false
+    var lastLocationError: Error?
+    
+    let geocoder = CLGeocoder()
+    var placemark: CLPlacemark?
+    var performingReverseGeocoding = false
+    var lastGeocodingError: Error?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         updateLabels()
+        configureGetButton()
         // Do any additional setup after loading the view.
     }
     
@@ -38,21 +46,71 @@ class CurrentLocationViewController: UIViewController, CLLocationManagerDelegate
             showLocationsServicesDeniedAlert()
             return
         }
-        locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
-        locationManager.startUpdatingLocation()
+//        locationManager.delegate = self
+//        locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+//        locationManager.startUpdatingLocation()
+        
+//        startLocationManager()
+        if updatingLocation {
+            stopLocationManager()
+        } else {
+            location = nil
+            lastLocationError = nil
+            startLocationManager()
+        }
+        updateLabels()
+        configureGetButton()
     }
     
     // MARK: - CLLocationManagerDelegate
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("didFailWithError \(error.localizedDescription)")
+        
+        if (error as NSError).code == CLError.locationUnknown.rawValue {
+            return
+        }
+        lastLocationError = error
+        stopLocationManager()
+        updateLabels()
+        configureGetButton()
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        
         let newLocation = locations.last!
         print("didUpdateLocations \(newLocation)")
-        location = newLocation
+        
+        if newLocation.timestamp.timeIntervalSinceNow < -5 {
+            return
+        }
+        if newLocation.horizontalAccuracy < 0 {
+            return
+        }
+        if location == nil || location!.horizontalAccuracy > newLocation.horizontalAccuracy {
+            lastLocationError = nil
+            location = newLocation
+            
+            if newLocation.horizontalAccuracy <= locationManager.desiredAccuracy {
+                print("*** We're done!")
+                stopLocationManager()
+            }
+        }
         updateLabels()
+        configureGetButton()
+        
+        if !performingReverseGeocoding {
+            print("*** Going to geocode")
+            performingReverseGeocoding = true
+            geocoder.reverseGeocodeLocation(newLocation) { placemark, error in
+                if let error = error {
+                    print("*** Reverse Geocoding error: \(error.localizedDescription)")
+                    return
+                }
+                if let places = placemark {
+                    print("*** Found places: \(places)")
+                }
+            }
+        }
     }
     
     func updateLabels() {
@@ -66,7 +124,41 @@ class CurrentLocationViewController: UIViewController, CLLocationManagerDelegate
             longitudeLabel.text = ""
             addressLabel.text = ""
             tagButton.isHidden = true
-            messageLabel.text = "Tab 'Get My Location' to Start"
+//            messageLabel.text = "Tab 'Get My Location' to Start"
+            
+            let statusMessage: String
+            if let error = lastLocationError as NSError? {
+                if error.domain == kCLErrorDomain && error.code == CLError.denied.rawValue {
+                    statusMessage = "Location Services Disabled"
+                } else {
+                    statusMessage = "Error Getting Location"
+                }
+            } else if !CLLocationManager.locationServicesEnabled() {
+                statusMessage = "Location Services Disabled"
+            } else if updatingLocation {
+                statusMessage = "Searching..."
+            } else {
+                statusMessage = "Tab 'Get My Location' to Start"
+            }
+            messageLabel.text = statusMessage
+            configureGetButton()
+        }
+    }
+    
+    func startLocationManager() {
+        if CLLocationManager.locationServicesEnabled() {
+            locationManager.delegate = self
+            locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+            locationManager.startUpdatingLocation()
+            updatingLocation = true
+        }
+    }
+    
+    func stopLocationManager() {
+        if updatingLocation {
+            locationManager.startUpdatingLocation()
+            locationManager.delegate = nil
+            updatingLocation = false
         }
     }
     
@@ -77,6 +169,14 @@ class CurrentLocationViewController: UIViewController, CLLocationManagerDelegate
         alert.addAction(okAction)
         
         present(alert, animated: true, completion: nil)
+    }
+    
+    func configureGetButton() {
+        if updatingLocation {
+            getButton.setTitle("Stop", for: .normal)
+        } else {
+            getButton.setTitle("Get My Location", for: .normal)
+        }
     }
 
 }
