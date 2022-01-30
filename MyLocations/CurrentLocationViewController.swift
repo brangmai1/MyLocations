@@ -122,15 +122,16 @@ class CurrentLocationViewController: UIViewController, CLLocationManagerDelegate
                     self.placemark = nil
                 }
                 self.performingReverseGeocoding = false
-                //self.updateLabels()
+                self.updateLabels()
+                self.configureGetButton()
             }
         }
-            updateLabels()
+//        updateLabels()
       // New section #3
       } else if distance < 1 {
         let timeInterval = newLocation.timestamp.timeIntervalSince(location!.timestamp)
         if timeInterval > 10 {
-          print("*** Force done!")
+//          print("*** Force done!")
           stopLocationManager()
           updateLabels()
         }
