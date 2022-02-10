@@ -117,7 +117,7 @@
         <scene sceneID="PA1-tH-San">
             <objects>
                 <tableViewController id="EdH-vA-VLO" customClass="LocationDetailsViewController" customModule="MyLocations" customModuleProvider="target" sceneMemberID="viewController">
-                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="grouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" id="5ol-TF-4iu">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" keyboardDismissMode="onDrag" dataMode="static" style="grouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" id="5ol-TF-4iu">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -193,6 +193,7 @@
                                                 </label>
                                             </subviews>
                                             <constraints>
+                                                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="Hys-l4-FEY" secondAttribute="trailing" constant="20" symbolic="YES" id="aqz-Kh-6gS"/>
                                                 <constraint firstItem="Hys-l4-FEY" firstAttribute="centerY" secondItem="zuZ-Lq-O27" secondAttribute="centerY" id="jpi-ux-eeI"/>
                                                 <constraint firstItem="Hys-l4-FEY" firstAttribute="leading" secondItem="zuZ-Lq-O27" secondAttribute="leadingMargin" id="x34-6A-Ig5"/>
                                             </constraints>
